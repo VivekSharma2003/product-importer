@@ -69,3 +69,4 @@ services:
     name: product-importer-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []  # Allow connections from all Render services

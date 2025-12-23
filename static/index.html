@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Importer | Acme Inc.</title>
+    <meta name="description" content="Import, manage, and sync products with ease. A powerful product management platform for large-scale CSV imports.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                    <span>Product Importer</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="import">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>Import</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="products">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="webhooks">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                    <span>Webhooks</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="stats-card">
+                    <div class="stats-label">Total Products</div>
+                    <div class="stats-value" id="total-products-count">-</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Import Tab -->
+            <section id="tab-import" class="tab-content active">
+                <div class="page-header">
+                    <h1>Import Products</h1>
+                    <p>Upload a CSV file to import products in bulk. Supports up to 500,000 products.</p>
+                </div>
+
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <h3>Drag & drop your CSV file here</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="file-input" accept=".csv" hidden>
+                    <button class="btn btn-primary" id="browse-btn">Browse Files</button>
+                </div>
+
+                <!-- Progress Section (hidden by default) -->
+                <div class="import-progress hidden" id="import-progress">
+                    <div class="progress-header">
+                        <h3 id="progress-filename">Importing products...</h3>
+                        <span class="status-badge" id="progress-status">Pending</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="stat">
+                            <span class="stat-label">Progress</span>
+                            <span class="stat-value" id="progress-percentage">0%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Processed</span>
+                            <span class="stat-value" id="progress-processed">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Created</span>
+                            <span class="stat-value success" id="progress-created">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Updated</span>
+                            <span class="stat-value info" id="progress-updated">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Errors</span>
+                            <span class="stat-value error" id="progress-errors">0</span>
+                        </div>
+                    </div>
+                    <p class="progress-message" id="progress-message">Preparing import...</p>
+                </div>
+
+                <!-- Import History -->
+                <div class="section-header">
+                    <h2>Import History</h2>
+                </div>
+                <div class="import-history" id="import-history">
+                    <p class="empty-state">No recent imports</p>
+                </div>
+
+                <!-- CSV Format Info -->
+                <div class="info-card">
+                    <h3>CSV Format Requirements</h3>
+                    <p>Your CSV file should include the following columns:</p>
+                    <table class="format-table">
+                        <thead>
+                            <tr>
+                                <th>Column</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>sku</td><td>Yes</td><td>Unique product identifier (case-insensitive)</td></tr>
+                            <tr><td>name</td><td>Yes</td><td>Product name</td></tr>
+                            <tr><td>description</td><td>No</td><td>Product description</td></tr>
+                            <tr><td>price</td><td>No</td><td>Price (decimal number)</td></tr>
+                            <tr><td>quantity</td><td>No</td><td>Stock quantity (integer)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Products Tab -->
+            <section id="tab-products" class="tab-content">
+                <div class="page-header">
+                    <h1>Products</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-danger" id="bulk-delete-btn">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Delete All
+                        </button>
+                        <button class="btn btn-primary" id="create-product-btn">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Add Product
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div class="search-input">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search by SKU, name, or description...">
+                    </div>
+                    <select id="status-filter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                    <button class="btn btn-secondary" id="reset-filters-btn">Reset</button>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-container">
+                    <table class="data-table" id="products-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-tbody">
+                            <tr><td colspan="7" class="empty-state">Loading products...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <button class="btn btn-icon" id="prev-page" disabled>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </button>
+                    <span class="page-info" id="page-info">Page 1 of 1</span>
+                    <button class="btn btn-icon" id="next-page" disabled>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Webhooks Tab -->
+            <section id="tab-webhooks" class="tab-content">
+                <div class="page-header">
+                    <h1>Webhooks</h1>
+                    <button class="btn btn-primary" id="create-webhook-btn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add Webhook
+                    </button>
+                </div>
+
+                <div class="webhooks-grid" id="webhooks-grid">
+                    <p class="empty-state">No webhooks configured</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal" id="product-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="product-modal-title">Add Product</h2>
+                <button class="btn btn-icon modal-close">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div class="form-group">
+                    <label for="product-sku">SKU *</label>
+                    <input type="text" id="product-sku" required placeholder="e.g., PROD-001">
+                </div>
+                <div class="form-group">
+                    <label for="product-name">Name *</label>
+                    <input type="text" id="product-name" required placeholder="Product name">
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea id="product-description" rows="3" placeholder="Product description"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-price">Price</label>
+                        <input type="number" id="product-price" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-quantity">Quantity</label>
+                        <input type="number" id="product-quantity" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="product-active" checked>
+                        <span>Active</span>
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="product-submit-btn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Webhook Modal -->
+    <div class="modal" id="webhook-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="webhook-modal-title">Add Webhook</h2>
+                <button class="btn btn-icon modal-close">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="webhook-form">
+                <input type="hidden" id="webhook-id">
+                <div class="form-group">
+                    <label for="webhook-name">Name *</label>
+                    <input type="text" id="webhook-name" required placeholder="e.g., Inventory Sync">
+                </div>
+                <div class="form-group">
+                    <label for="webhook-url">URL *</label>
+                    <input type="url" id="webhook-url" required placeholder="https://example.com/webhook">
+                </div>
+                <div class="form-group">
+                    <label for="webhook-event">Event Type *</label>
+                    <select id="webhook-event" required>
+                        <option value="">Select event type</option>
+                        <option value="product.created">Product Created</option>
+                        <option value="product.updated">Product Updated</option>
+                        <option value="product.deleted">Product Deleted</option>
+                        <option value="import.started">Import Started</option>
+                        <option value="import.completed">Import Completed</option>
+                        <option value="import.failed">Import Failed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="webhook-secret">Secret (optional)</label>
+                    <input type="text" id="webhook-secret" placeholder="HMAC secret for signature verification">
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="webhook-enabled" checked>
+                        <span>Enabled</span>
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="webhook-submit-btn">Save Webhook</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 id="confirm-title">Confirm Action</h2>
+                <button class="btn btn-icon modal-close">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

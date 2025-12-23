@@ -1,0 +1,71 @@
+# Render.com deployment configuration
+# This file defines services for deployment on Render
+
+databases:
+  - name: product-importer-db
+    plan: free
+    databaseName: product_importer
+    user: product_user
+
+services:
+  # Web Server
+  - type: web
+    name: product-importer-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: product-importer-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: product-importer-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: product-importer-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: product-importer-redis
+          type: redis
+          property: connectionString
+      - key: DEBUG
+        value: "false"
+    healthCheckPath: /health
+
+  # Celery Worker
+  - type: worker
+    name: product-importer-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: celery -A app.celery_app worker --loglevel=info -Q csv_import,webhooks,celery
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: product-importer-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: product-importer-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: product-importer-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: product-importer-redis
+          type: redis
+          property: connectionString
+
+  # Redis
+  - type: redis
+    name: product-importer-redis
+    plan: free
+    maxmemoryPolicy: noeviction

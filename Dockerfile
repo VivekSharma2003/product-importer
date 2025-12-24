@@ -38,12 +38,6 @@ RUN mkdir -p /tmp/uploads
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Copy startup script
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
-
 # Expose port
 EXPOSE 8000
 
-# Default command for web server
-CMD ["/app/start.sh"]

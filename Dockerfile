@@ -38,8 +38,12 @@ RUN mkdir -p /tmp/uploads
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Expose port
 EXPOSE 8000
 
-# Default command for web server (uses PORT env var for Railway, defaults to 8000)
-CMD ["/bin/sh", "-c", "gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}"]
+# Default command for web server
+CMD ["/app/start.sh"]
